@@ -41,7 +41,11 @@
                     <div><label for="password" class="sr-only">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Password"></div>
                 </div>
                 <div class="flex items-center justify-end"><div class="text-sm"><a href="#" id="forgotPasswordLink" class="font-medium text-indigo-600 hover:text-indigo-500">Forgot your password?</a></div></div>
-                <div><button id="authSubmitBtn" type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Sign In</button></div>
+                <div>
+                    <button id="authSubmitBtn" type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Sign In
+                    </button>
+                </div>
             </form>
             <p class="mt-2 text-center text-sm text-gray-600"><a href="#" id="authToggleLink" class="font-medium text-indigo-600 hover:text-indigo-500">Don't have an account? Sign Up</a></p>
         </div>
@@ -130,7 +134,25 @@
         onAuthStateChanged(auth, (user) => { if (user) { userId = user.uid; userEmail.textContent = user.email; inventoryCollectionRef = collection(db, `users/${userId}/inventory`); authContainer.classList.add('hidden-by-auth'); appContainer.classList.remove('hidden-by-auth'); listenForInventoryUpdates(); } else { userId = null; inventoryCollectionRef = null; fullInventory = []; renderInventory([]); authContainer.classList.remove('hidden-by-auth'); appContainer.classList.add('hidden-by-auth'); } });
         authForm.addEventListener('submit', async (e) => { e.preventDefault(); const email = authForm.email.value; const password = authForm.password.value; loadingOverlay.style.display = 'flex'; try { if (isLoginMode) { await signInWithEmailAndPassword(auth, email, password); } else { await createUserWithEmailAndPassword(auth, email, password); } } catch (error) { showMessage(error.message, true); } finally { loadingOverlay.style.display = 'none'; } });
         signOutBtn.addEventListener('click', async () => { await signOut(auth); });
-        authToggleLink.addEventListener('click', (e) => { e.preventDefault(); isLoginMode = !isLoginMode; const forgotPasswordContainer = document.getElementById('forgotPasswordLink').parentElement.parentElement; if (isLoginMode) { authTitle.textContent = 'Sign in to your account'; authSubmitBtn.textContent = 'Sign In'; authToggleLink.innerHTML = 'Don\'t have an account? <span class="font-bold">Sign Up</span>'; forgotPasswordContainer.style.display = 'flex'; } else { authTitle.textContent = 'Create a new account'; authSubmitBtn.textContent = 'Sign Up'; authToggleLink.innerHTML = 'Already have an account? <span class="font-bold">Sign In</span>'; forgotPasswordContainer.style.display = 'none'; } });
+        
+        authToggleLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
+            // THIS IS THE FIX: Correctly get the container for the forgot password link
+            const forgotPasswordContainer = forgotPasswordLink.parentElement.parentElement;
+            if (isLoginMode) {
+                authTitle.textContent = 'Sign in to your account';
+                authSubmitBtn.textContent = 'Sign In';
+                authToggleLink.innerHTML = 'Don\'t have an account? <span class="font-bold">Sign Up</span>';
+                forgotPasswordContainer.style.display = 'flex';
+            } else {
+                authTitle.textContent = 'Create a new account';
+                authSubmitBtn.textContent = 'Sign Up';
+                authToggleLink.innerHTML = 'Already have an account? <span class="font-bold">Sign In</span>';
+                forgotPasswordContainer.style.display = 'none';
+            }
+        });
+
         forgotPasswordLink.addEventListener('click', async (e) => { e.preventDefault(); const email = authForm.email.value; if (!email) { showMessage("Please enter your email address in the email field first.", true); return; } loadingOverlay.style.display = 'flex'; try { await sendPasswordResetEmail(auth, email); showMessage(`Password reset link sent to ${email}. Please check your inbox.`); } catch (error) { showMessage(error.message, true); } finally { loadingOverlay.style.display = 'none'; } });
 
         // --- Main App Logic ---
