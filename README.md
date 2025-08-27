@@ -71,23 +71,24 @@
 
     <!-- Modals -->
     <div id="transactionModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full items-center justify-center"><div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-2xl bg-white"><div class="text-center"><h3 class="text-2xl font-bold text-gray-900">Manage Stock</h3><div class="mt-4 px-7 py-3"><p class="text-sm text-gray-500" id="modalItemInfo"></p><form id="transactionForm" class="mt-6 space-y-4"><input type="hidden" id="modalItemId"><div><label for="transactionType" class="block text-sm font-medium text-gray-700 mb-1 text-left">Transaction Type</label><select id="transactionType" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg"><option value="inward">Inward (+)</option><option value="outward">Outward (-)</option></select></div><div><label for="transactionAmount" class="block text-sm font-medium text-gray-700 mb-1 text-left">Quantity</label><input type="number" id="transactionAmount" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="e.g., 10" min="0" step="any" required></div><div><label for="transactionDate" class="block text-sm font-medium text-gray-700 mb-1 text-left">Date</label><input type="date" id="transactionDate" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" required></div><div id="customerNameContainer" style="display: none;"><label for="customerName" class="block text-sm font-medium text-gray-700 mb-1 text-left">Customer Name</label><input type="text" id="customerName" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="e.g., ABC Engineering"></div><div class="flex items-center justify-end pt-4 gap-4"><button id="closeModalBtn" type="button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Cancel</button><button type="submit" class="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-green-600">Confirm</button></div></form></div></div></div></div>
+    <div id="historyModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full items-center justify-center p-4"><div class="relative mx-auto p-8 border w-full max-w-4xl h-full max-h-[90vh] shadow-lg rounded-2xl bg-white flex flex-col"><h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Transaction History</h3><p id="historyItemInfo" class="text-center text-gray-600 mb-6"></p><div class="overflow-y-auto flex-grow"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50 sticky top-0"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock After</th></tr></thead><tbody id="historyTableBody" class="bg-white divide-y divide-gray-200"></tbody></table></div><div class="flex items-center justify-end pt-6"><button id="closeHistoryModalBtn" type="button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Close</button></div></div></div>
     <div id="messageBox" class="fixed bottom-5 right-5 bg-red-500 text-white py-3 px-5 rounded-lg shadow-xl transition-transform transform translate-x-full hidden"><p id="messageText"></p></div>
 
     <script type="module">
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, setLogLevel, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, setLogLevel, writeBatch, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // --- Config and Initialization ---
-        // IMPORTANT: Make sure this firebaseConfig is the correct one from your project.
+        // --- THIS IS YOUR CORRECT, VERIFIED CONFIG ---
         const firebaseConfig = {
           apiKey: "AIzaSyBqvd38A2xTbvmvuJWVBXhc83NcVuH4LaM",
           authDomain: "metal-stock-faf6c.firebaseapp.com",
           projectId: "metal-stock-faf6c",
-          storageBucket: "metal-stock-faf6c.appspot.com",
+          storageBucket: "metal-stock-faf6c.firebasestorage.app",
           messagingSenderId: "531401442922",
-          appId: "1:531401442922:web:0d8159091329069ec2ac13"
+          appId: "1:531401442922:web:0d8159091329069ec2ac13",
+          measurementId: "G-4E2Y6R3P8W"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -125,6 +126,10 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
             const transactionType = document.getElementById('transactionType');
             const customerNameContainer = document.getElementById('customerNameContainer');
+            const historyModal = document.getElementById('historyModal');
+            const historyItemInfo = document.getElementById('historyItemInfo');
+            const historyTableBody = document.getElementById('historyTableBody');
+            const closeHistoryModalBtn = document.getElementById('closeHistoryModalBtn');
 
             // --- Authentication Logic ---
             onAuthStateChanged(auth, (user) => { if (user) { userId = user.uid; userEmail.textContent = user.email; inventoryCollectionRef = collection(db, `users/${userId}/inventory`); authContainer.classList.add('hidden-by-auth'); appContainer.classList.remove('hidden-by-auth'); listenForInventoryUpdates(); } else { userId = null; inventoryCollectionRef = null; fullInventory = []; renderInventory([]); authContainer.classList.remove('hidden-by-auth'); appContainer.classList.add('hidden-by-auth'); } });
@@ -168,7 +173,8 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${item.dimensions}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${item.currentStock < LOW_STOCK_THRESHOLD ? 'text-red-600' : 'text-gray-800'}">${item.currentStock}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <button class="text-indigo-600 hover:text-indigo-900 manage-stock-btn" data-id="${item.id}" data-item='${JSON.stringify(item)}'>Manage</button>
+                            <button class="text-green-600 hover:text-green-900 history-btn" data-id="${item.id}" data-item='${JSON.stringify(item)}'>History</button>
+                            <button class="text-indigo-600 hover:text-indigo-900 ml-4 manage-stock-btn" data-id="${item.id}" data-item='${JSON.stringify(item)}'>Manage</button>
                             <button class="text-red-600 hover:text-red-900 ml-4 delete-item-btn" data-id="${item.id}">Delete</button>
                         </td>
                     `;
@@ -185,6 +191,44 @@
 
                 if (target.classList.contains('delete-item-btn')) { if (confirm("Are you sure you want to delete this item? This will also delete its transaction history.")) { loadingOverlay.style.display = 'flex'; try { await deleteDoc(doc(inventoryCollectionRef, id)); showMessage("Item deleted successfully."); } catch (error) { console.error("Error deleting item: ", error); showMessage("Failed to delete item.", true); } finally { loadingOverlay.style.display = 'none'; } } }
                 if (target.classList.contains('manage-stock-btn')) { const item = JSON.parse(target.dataset.item); modalItemId.value = id; modalItemInfo.textContent = `${item.material} - ${item.shape} - ${item.dimensions}`; document.getElementById('transactionDate').value = new Date().toISOString().split('T')[0]; document.getElementById('customerName').value = ''; customerNameContainer.style.display = transactionType.value === 'outward' ? 'block' : 'none'; transactionModal.classList.add('active'); }
+                
+                if (target.classList.contains('history-btn')) {
+                    const item = JSON.parse(target.dataset.item);
+                    historyItemInfo.textContent = `${item.material} - ${item.shape} - ${item.dimensions}`;
+                    loadingOverlay.style.display = 'flex';
+                    
+                    const transactionsRef = collection(db, `users/${userId}/inventory/${id}/transactions`);
+                    const q = query(transactionsRef, orderBy("date", "desc"));
+                    
+                    try {
+                        const querySnapshot = await getDocs(q);
+                        historyTableBody.innerHTML = '';
+                        if (querySnapshot.empty) {
+                            historyTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-500">No transaction history found.</td></tr>';
+                        } else {
+                            querySnapshot.forEach((doc) => {
+                                const data = doc.data();
+                                const transactionDate = data.date.toDate().toLocaleDateString();
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${transactionDate}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium ${data.type === 'inward' ? 'text-green-600' : 'text-red-600'}">${data.type.charAt(0).toUpperCase() + data.type.slice(1)}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${data.amount}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${data.customerName || 'N/A'}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-800">${data.newStock}</td>
+                                `;
+                                historyTableBody.appendChild(row);
+                            });
+                        }
+                    } catch (err) {
+                        console.error("Error fetching history:", err);
+                        showMessage("Could not load transaction history.", true);
+                        historyTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-red-500">Error loading history.</td></tr>';
+                    } finally {
+                        loadingOverlay.style.display = 'none';
+                        historyModal.classList.add('active');
+                    }
+                }
             });
 
             transactionType.addEventListener('change', (e) => { customerNameContainer.style.display = e.target.value === 'outward' ? 'block' : 'none'; });
@@ -229,6 +273,7 @@
             });
 
             closeModalBtn.addEventListener('click', () => { transactionModal.classList.remove('active'); });
+            closeHistoryModalBtn.addEventListener('click', () => { historyModal.classList.remove('active'); });
             searchInput.addEventListener('input', filterAndRender);
         });
     </script>
