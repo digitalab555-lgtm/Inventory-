@@ -80,7 +80,7 @@
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, setLogLevel, writeBatch, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // --- THIS IS YOUR CORRECT, VERIFIED CONFIG ---
+        // --- YOUR CORRECT, VERIFIED CONFIG ---
         const firebaseConfig = {
           apiKey: "AIzaSyBqvd38A2xTbvmvuJWVBXhc83NcVuH4LaM",
           authDomain: "metal-stock-faf6c.firebaseapp.com",
@@ -107,12 +107,10 @@
             const authContainer = document.getElementById('authContainer');
             const appContainer = document.getElementById('appContainer');
             const authForm = document.getElementById('authForm');
-            const authToggleLink = document.getElementById('authToggleLink');
             const authTitle = document.getElementById('authTitle');
             const authSubmitBtn = document.getElementById('authSubmitBtn');
             const signOutBtn = document.getElementById('signOutBtn');
             const userEmail = document.getElementById('userEmail');
-            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
             const addItemForm = document.getElementById('addItemForm');
             const inventoryTableBody = document.getElementById('inventoryTableBody');
             const searchInput = document.getElementById('searchInput');
@@ -130,6 +128,10 @@
             const historyItemInfo = document.getElementById('historyItemInfo');
             const historyTableBody = document.getElementById('historyTableBody');
             const closeHistoryModalBtn = document.getElementById('closeHistoryModalBtn');
+            
+            // --- THIS IS THE FIX: These two lines were missing ---
+            const authToggleLink = document.getElementById('authToggleLink');
+            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
             // --- Authentication Logic ---
             onAuthStateChanged(auth, (user) => { if (user) { userId = user.uid; userEmail.textContent = user.email; inventoryCollectionRef = collection(db, `users/${userId}/inventory`); authContainer.classList.add('hidden-by-auth'); appContainer.classList.remove('hidden-by-auth'); listenForInventoryUpdates(); } else { userId = null; inventoryCollectionRef = null; fullInventory = []; renderInventory([]); authContainer.classList.remove('hidden-by-auth'); appContainer.classList.add('hidden-by-auth'); } });
