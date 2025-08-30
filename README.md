@@ -10,7 +10,6 @@
         body { font-family: 'Inter', sans-serif; }
         .modal { display: none; }
         .modal.active { display: flex; }
-        .hidden-by-auth { display: none !important; }
         #loadingOverlay {
             display: none;
             position: fixed; inset: 0;
@@ -31,28 +30,9 @@
     <!-- Loading Overlay -->
     <div id="loadingOverlay"><div class="spinner"></div></div>
 
-    <!-- Auth Screen -->
-    <div id="authContainer" class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-lg">
-            <div><h2 id="authTitle" class="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2></div>
-            <form id="authForm" class="mt-8 space-y-6">
-                <div class="rounded-md shadow-sm -space-y-px">
-                    <div><label for="email-address" class="sr-only">Email address</label><input id="email-address" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Email address"></div>
-                    <div><label for="password" class="sr-only">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Password"></div>
-                </div>
-                <div class="flex items-center justify-end"><div class="text-sm"><a href="#" id="forgotPasswordLink" class="font-medium text-indigo-600 hover:text-indigo-500">Forgot your password?</a></div></div>
-                <div>
-                    <button id="authSubmitBtn" type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Sign In
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Main App Content -->
-    <div id="appContainer" class="hidden-by-auth">
-        <nav class="bg-indigo-600 shadow-md"><div class="container mx-auto px-4 sm:px-6 lg:px-8"><div class="flex items-center justify-between h-16"><div class="flex-shrink-0"><h1 class="text-white text-xl font-bold">Inventory</h1></div><div class="flex items-center"><p id="userEmail" class="text-indigo-200 text-sm mr-4"></p><button id="signOutBtn" class="bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white transition">Sign Out</button></div></div></div></nav>
+    <div id="appContainer">
+        <nav class="bg-indigo-600 shadow-md"><div class="container mx-auto px-4 sm:px-6 lg:px-8"><div class="flex items-center justify-between h-16"><div class="flex-shrink-0"><h1 class="text-white text-xl font-bold">Inventory</h1></div></div></div></nav>
         <div class="container mx-auto p-4 sm:p-6 lg:p-8">
             <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
                 <h2 class="text-2xl font-semibold mb-6 border-b pb-4">Add New Stock Item</h2>
@@ -77,8 +57,7 @@
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, writeBatch, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
+        
         // --- YOUR CORRECT, VERIFIED CONFIG ---
         const firebaseConfig = {
           apiKey: "AIzaSyBqvd38A2xTbvmvuJWVBXhc83NcVuH4LaM",
@@ -92,22 +71,14 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
-        
+
         document.addEventListener('DOMContentLoaded', () => {
             // --- State Variables ---
-            let userId = null;
-            let inventoryCollectionRef = null;
             let fullInventory = [];
             const LOW_STOCK_THRESHOLD = 10;
+            const inventoryCollectionRef = collection(db, 'public_inventory');
 
             // --- DOM Elements ---
-            const authContainer = document.getElementById('authContainer');
-            const appContainer = document.getElementById('appContainer');
-            const authForm = document.getElementById('authForm');
-            const authSubmitBtn = document.getElementById('authSubmitBtn');
-            const signOutBtn = document.getElementById('signOutBtn');
-            const userEmail = document.getElementById('userEmail');
             const addItemForm = document.getElementById('addItemForm');
             const inventoryTableBody = document.getElementById('inventoryTableBody');
             const searchInput = document.getElementById('searchInput');
@@ -125,62 +96,9 @@
             const historyItemInfo = document.getElementById('historyItemInfo');
             const historyTableBody = document.getElementById('historyTableBody');
             const closeHistoryModalBtn = document.getElementById('closeHistoryModalBtn');
-            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-            
-            // --- Authentication Logic ---
-            onAuthStateChanged(auth, (user) => { 
-                if (user) { 
-                    userId = user.uid; 
-                    userEmail.textContent = user.email; 
-                    inventoryCollectionRef = collection(db, `users/${userId}/inventory`); 
-                    authContainer.classList.add('hidden-by-auth'); 
-                    appContainer.classList.remove('hidden-by-auth'); 
-                    listenForInventoryUpdates(); 
-                } else { 
-                    userId = null; 
-                    inventoryCollectionRef = null; 
-                    fullInventory = []; 
-                    renderInventory([]); 
-                    authContainer.classList.remove('hidden-by-auth'); 
-                    appContainer.classList.add('hidden-by-auth'); 
-                } 
-            });
 
-            authForm.addEventListener('submit', async (e) => { 
-                e.preventDefault(); 
-                const email = authForm.email.value; 
-                const password = authForm.password.value; 
-                loadingOverlay.style.display = 'flex'; 
-                try { 
-                    await signInWithEmailAndPassword(auth, email, password); 
-                } catch (error) { 
-                    showMessage(error.message, true); 
-                } finally { 
-                    loadingOverlay.style.display = 'none'; 
-                } 
-            });
-
-            signOutBtn.addEventListener('click', async () => { 
-                await signOut(auth); 
-            });
-
-            forgotPasswordLink.addEventListener('click', async (e) => { 
-                e.preventDefault(); 
-                const email = authForm.email.value; 
-                if (!email) { 
-                    showMessage("Please enter your email address in the email field first.", true); 
-                    return; 
-                } 
-                loadingOverlay.style.display = 'flex'; 
-                try { 
-                    await sendPasswordResetEmail(auth, email); 
-                    showMessage(`Password reset link sent to ${email}. Please check your inbox.`); 
-                } catch (error) { 
-                    showMessage(error.message, true); 
-                } finally { 
-                    loadingOverlay.style.display = 'none'; 
-                } 
-            });
+            // --- Initialize App ---
+            listenForInventoryUpdates();
 
             // --- Main App Logic ---
             function showMessage(message, isError = false) { 
@@ -194,7 +112,6 @@
             }
 
             function listenForInventoryUpdates() { 
-                if (!inventoryCollectionRef) return; 
                 onSnapshot(inventoryCollectionRef, (snapshot) => { 
                     fullInventory = []; 
                     snapshot.forEach(doc => fullInventory.push({ id: doc.id, ...doc.data() })); 
@@ -230,4 +147,118 @@
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
                             <button class="text-green-600 hover:text-green-900 history-btn" data-id="${item.id}">History</button>
                             <button class="text-indigo-600 hover:text-indigo-900 stock-btn" data-id="${item.id}">Manage Stock</button>
-                            
+                            <button class="text-red-600 hover:text-red-900 delete-btn" data-id="${item.id}">Delete</button>
+                        </td>
+                    `;
+                    inventoryTableBody.appendChild(row);
+                });
+            }
+
+            // --- Event Listeners for Main App ---
+            addItemForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                loadingOverlay.style.display = 'flex';
+                const dimensions = addItemForm.dimensions.value;
+                const normalizedDimensions = dimensions.endsWith(" mm") ? dimensions : dimensions + " mm";
+                
+                const newItem = {
+                    material: addItemForm.material.value,
+                    shape: addItemForm.shape.value,
+                    dimensions: normalizedDimensions,
+                    initialStock: Number(addItemForm.initialStock.value),
+                    currentStock: Number(addItemForm.initialStock.value),
+                    timestamp: serverTimestamp()
+                };
+
+                try {
+                    await addDoc(inventoryCollectionRef, newItem);
+                    showMessage("Item added successfully!");
+                    addItemForm.reset();
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                    showMessage("Error adding item. Please try again.", true);
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                }
+            });
+
+            searchInput.addEventListener('input', filterAndRender);
+            
+            // Event Delegation for dynamically created buttons
+            inventoryTableBody.addEventListener('click', async (e) => {
+                if (e.target.classList.contains('stock-btn')) {
+                    const itemId = e.target.dataset.id;
+                    const item = fullInventory.find(i => i.id === itemId);
+                    if (item) {
+                        modalItemId.value = itemId;
+                        modalItemInfo.textContent = `${item.material} ${item.shape} (${item.dimensions})`;
+                        transactionModal.classList.add('active');
+                        document.getElementById('transactionDate').valueAsDate = new Date(); // Set to current date
+                    }
+                } else if (e.target.classList.contains('delete-btn')) {
+                    if (confirm('Are you sure you want to delete this item?')) {
+                        const itemId = e.target.dataset.id;
+                        loadingOverlay.style.display = 'flex';
+                        try {
+                            const docRef = doc(db, 'public_inventory', itemId);
+                            await deleteDoc(docRef);
+                            showMessage("Item deleted successfully.");
+                        } catch (e) {
+                            console.error("Error deleting document: ", e);
+                            showMessage("Error deleting item. Please try again.", true);
+                        } finally {
+                            loadingOverlay.style.display = 'none';
+                        }
+                    }
+                } else if (e.target.classList.contains('history-btn')) {
+                    const itemId = e.target.dataset.id;
+                    const item = fullInventory.find(i => i.id === itemId);
+                    if (item) {
+                        historyItemInfo.textContent = `${item.material} ${item.shape} (${item.dimensions})`;
+                        await fetchHistory(itemId);
+                        historyModal.classList.add('active');
+                    }
+                }
+            });
+
+            transactionType.addEventListener('change', (e) => {
+                if (e.target.value === 'outward') {
+                    customerNameContainer.style.display = 'block';
+                } else {
+                    customerNameContainer.style.display = 'none';
+                }
+            });
+
+            transactionForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                loadingOverlay.style.display = 'flex';
+
+                const itemId = modalItemId.value;
+                const transactionTypeVal = transactionType.value;
+                const transactionAmount = Number(document.getElementById('transactionAmount').value);
+                const transactionDate = document.getElementById('transactionDate').value;
+                const customerName = document.getElementById('customerName').value;
+
+                const itemRef = doc(db, 'public_inventory', itemId);
+                const item = fullInventory.find(i => i.id === itemId);
+                
+                if (!item) {
+                    showMessage("Item not found.", true);
+                    loadingOverlay.style.display = 'none';
+                    return;
+                }
+
+                const batch = writeBatch(db);
+                const newStock = transactionTypeVal === 'inward' ? item.currentStock + transactionAmount : item.currentStock - transactionAmount;
+
+                if (newStock < 0) {
+                    showMessage("Outward quantity cannot exceed current stock.", true);
+                    loadingOverlay.style.display = 'none';
+                    return;
+                }
+
+                // Update inventory
+                batch.update(itemRef, { currentStock: newStock });
+
+                // Add transaction history
+                const history
