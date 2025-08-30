@@ -1,4 +1,4 @@
-                <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -28,8 +28,10 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
+    <!-- Loading Overlay -->
     <div id="loadingOverlay"><div class="spinner"></div></div>
 
+    <!-- Auth Screen -->
     <div id="authContainer" class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-lg">
             <div><h2 id="authTitle" class="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2></div>
@@ -49,6 +51,7 @@
         </div>
     </div>
 
+    <!-- Main App Content -->
     <div id="appContainer" class="hidden-by-auth">
         <nav class="bg-indigo-600 shadow-md"><div class="container mx-auto px-4 sm:px-6 lg:px-8"><div class="flex items-center justify-between h-16"><div class="flex-shrink-0"><h1 class="text-white text-xl font-bold">Inventory</h1></div><div class="flex items-center"><p id="userEmail" class="text-indigo-200 text-sm mr-4"></p><button id="signOutBtn" class="bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white transition">Sign Out</button></div></div></div></nav>
         <div class="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -57,7 +60,7 @@
                 <form id="addItemForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div><label for="material" class="block text-sm font-medium text-gray-700 mb-1">Material</label><select id="material" name="material" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg"><option>Aluminium 6061</option><option>Aluminium 6082</option><option>Aluminium 7075</option><option>Stainless Steel 304</option><option>Stainless Steel 303</option><option>Stainless Steel 420</option><option>Stainless Steel 316</option><option>Stainless Steel 316L</option><option>Stainless Steel 202</option><option>Brass</option><option>Copper</option></select></div>
                     <div><label for="shape" class="block text-sm font-medium text-gray-700 mb-1">Shape</label><select id="shape" name="shape" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg"><option>Round Rod</option><option>Hexagon</option><option>Flat</option><option>Plate</option><option>Pipe</option><option>Square</option></select></div>
-                    <div><label for="dimensions" class="block text-sm font-medium text-gray-700 mb-1">Dimensions</label><input type="text" id="dimensions" name="dimensions" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="e.g., 19.05x63.5 mm"></div>
+                    <div><label for="dimensions" class="block text-sm font-medium text-gray-700 mb-1">Dimensions (e.g., 19.05x63.5)</label><input type="text" id="dimensions" name="dimensions" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="e.g., 19.05x63.5"></div>
                     <div><label for="initialStock" class="block text-sm font-medium text-gray-700 mb-1">Initial Quantity (kg/pcs)</label><input type="number" id="initialStock" name="initialStock" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="e.g., 100" min="0" step="any"></div>
                     <div class="md:col-span-2 lg:col-span-4 flex justify-end"><button type="submit" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700">Add Item</button></div>
                 </form>
@@ -66,6 +69,7 @@
         </div>
     </div>
 
+    <!-- Modals -->
     <div id="transactionModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full items-center justify-center"><div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-2xl bg-white"><div class="text-center"><h3 class="text-2xl font-bold text-gray-900">Manage Stock</h3><div class="mt-4 px-7 py-3"><p class="text-sm text-gray-500" id="modalItemInfo"></p><form id="transactionForm" class="mt-6 space-y-4"><input type="hidden" id="modalItemId"><div><label for="transactionType" class="block text-sm font-medium text-gray-700 mb-1 text-left">Transaction Type</label><select id="transactionType" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg"><option value="inward">Inward (+)</option><option value="outward">Outward (-)</option></select></div><div><label for="transactionAmount" class="block text-sm font-medium text-gray-700 mb-1 text-left">Quantity</label><input type="number" id="transactionAmount" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="e.g., 10" min="0" step="any" required></div><div><label for="transactionDate" class="block text-sm font-medium text-gray-700 mb-1 text-left">Date</label><input type="date" id="transactionDate" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" required></div><div id="customerNameContainer" style="display: none;"><label for="customerName" class="block text-sm font-medium text-gray-700 mb-1 text-left">Customer Name</label><input type="text" id="customerName" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="e.g., ABC Engineering"></div><div class="flex items-center justify-end pt-4 gap-4"><button id="closeModalBtn" type="button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Cancel</button><button type="submit" class="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-green-600">Confirm</button></div></form></div></div></div></div>
     <div id="historyModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full items-center justify-center p-4"><div class="relative mx-auto p-8 border w-full max-w-4xl h-full max-h-[90vh] shadow-lg rounded-2xl bg-white flex flex-col"><h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Transaction History</h3><p id="historyItemInfo" class="text-center text-gray-600 mb-6"></p><div class="overflow-y-auto flex-grow"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50 sticky top-0"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock After</th></tr></thead><tbody id="historyTableBody" class="bg-white divide-y divide-gray-200"></tbody></table></div><div class="flex items-center justify-end pt-6"><button id="closeHistoryModalBtn" type="button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Close</button></div></div></div>
     <div id="messageBox" class="fixed bottom-5 right-5 bg-red-500 text-white py-3 px-5 rounded-lg shadow-xl transition-transform transform translate-x-full hidden"><p id="messageText"></p></div>
@@ -235,5 +239,4 @@
 
             function renderInventory(items) {
                 inventoryTableBody.innerHTML = '';
-                if (!items || items.length === 0) { 
-                    inventoryTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-
+                if (!items 
