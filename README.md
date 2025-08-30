@@ -47,7 +47,6 @@
                     </button>
                 </div>
             </form>
-            <p class="mt-2 text-center text-sm text-gray-600"><a href="#" id="authToggleLink" class="font-medium text-indigo-600 hover:text-indigo-500">Don't have an account? Sign Up</a></p>
         </div>
     </div>
 
@@ -78,7 +77,7 @@
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, writeBatch, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- YOUR CORRECT, VERIFIED CONFIG ---
         const firebaseConfig = {
@@ -101,13 +100,11 @@
             let inventoryCollectionRef = null;
             let fullInventory = [];
             const LOW_STOCK_THRESHOLD = 10;
-            let isLoginMode = true;
 
             // --- DOM Elements ---
             const authContainer = document.getElementById('authContainer');
             const appContainer = document.getElementById('appContainer');
             const authForm = document.getElementById('authForm');
-            const authTitle = document.getElementById('authTitle');
             const authSubmitBtn = document.getElementById('authSubmitBtn');
             const signOutBtn = document.getElementById('signOutBtn');
             const userEmail = document.getElementById('userEmail');
@@ -128,9 +125,8 @@
             const historyItemInfo = document.getElementById('historyItemInfo');
             const historyTableBody = document.getElementById('historyTableBody');
             const closeHistoryModalBtn = document.getElementById('closeHistoryModalBtn');
-            const authToggleLink = document.getElementById('authToggleLink');
             const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-
+            
             // --- Authentication Logic ---
             onAuthStateChanged(auth, (user) => { 
                 if (user) { 
@@ -156,11 +152,7 @@
                 const password = authForm.password.value; 
                 loadingOverlay.style.display = 'flex'; 
                 try { 
-                    if (isLoginMode) { 
-                        await signInWithEmailAndPassword(auth, email, password); 
-                    } else { 
-                        await createUserWithEmailAndPassword(auth, email, password); 
-                    } 
+                    await signInWithEmailAndPassword(auth, email, password); 
                 } catch (error) { 
                     showMessage(error.message, true); 
                 } finally { 
@@ -170,23 +162,6 @@
 
             signOutBtn.addEventListener('click', async () => { 
                 await signOut(auth); 
-            });
-
-            authToggleLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                isLoginMode = !isLoginMode;
-                const forgotPasswordContainer = forgotPasswordLink.parentElement.parentElement;
-                if (isLoginMode) {
-                    authTitle.textContent = 'Sign in to your account';
-                    authSubmitBtn.textContent = 'Sign In';
-                    authToggleLink.innerHTML = 'Don\'t have an account? Sign Up';
-                    forgotPasswordContainer.style.display = 'flex';
-                } else {
-                    authTitle.textContent = 'Create a new account';
-                    authSubmitBtn.textContent = 'Sign Up';
-                    authToggleLink.innerHTML = 'Already have an account? Sign In';
-                    forgotPasswordContainer.style.display = 'none';
-                }
             });
 
             forgotPasswordLink.addEventListener('click', async (e) => { 
@@ -239,4 +214,20 @@
 
             function renderInventory(items) {
                 inventoryTableBody.innerHTML = '';
-                if (!items 
+                if (!items || items.length === 0) { 
+                    inventoryTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-500">No items in inventory.</td></tr>'; 
+                    return; 
+                }
+                items.sort((a, b) => a.material.localeCompare(b.material));
+                items.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.className = item.currentStock < LOW_STOCK_THRESHOLD ? 'bg-red-100' : 'bg-white';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.material}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${item.shape}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${item.dimensions}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${item.currentStock < LOW_STOCK_THRESHOLD ? 'text-red-600' : 'text-gray-800'}">${item.currentStock}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
+                            <button class="text-green-600 hover:text-green-900 history-btn" data-id="${item.id}">History</button>
+                            <button class="text-indigo-600 hover:text-indigo-900 stock-btn" data-id="${item.id}">Manage Stock</button>
+                            
