@@ -28,10 +28,8 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <!-- Loading Overlay -->
     <div id="loadingOverlay"><div class="spinner"></div></div>
 
-    <!-- Auth Screen -->
     <div id="authContainer" class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-lg">
             <div><h2 id="authTitle" class="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2></div>
@@ -51,7 +49,6 @@
         </div>
     </div>
 
-    <!-- Main App Content -->
     <div id="appContainer" class="hidden-by-auth">
         <nav class="bg-indigo-600 shadow-md"><div class="container mx-auto px-4 sm:px-6 lg:px-8"><div class="flex items-center justify-between h-16"><div class="flex-shrink-0"><h1 class="text-white text-xl font-bold">Inventory</h1></div><div class="flex items-center"><p id="userEmail" class="text-indigo-200 text-sm mr-4"></p><button id="signOutBtn" class="bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white transition">Sign Out</button></div></div></div></nav>
         <div class="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -69,7 +66,6 @@
         </div>
     </div>
 
-    <!-- Modals -->
     <div id="transactionModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full items-center justify-center"><div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-2xl bg-white"><div class="text-center"><h3 class="text-2xl font-bold text-gray-900">Manage Stock</h3><div class="mt-4 px-7 py-3"><p class="text-sm text-gray-500" id="modalItemInfo"></p><form id="transactionForm" class="mt-6 space-y-4"><input type="hidden" id="modalItemId"><div><label for="transactionType" class="block text-sm font-medium text-gray-700 mb-1 text-left">Transaction Type</label><select id="transactionType" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg"><option value="inward">Inward (+)</option><option value="outward">Outward (-)</option></select></div><div><label for="transactionAmount" class="block text-sm font-medium text-gray-700 mb-1 text-left">Quantity</label><input type="number" id="transactionAmount" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="e.g., 10" min="0" step="any" required></div><div><label for="transactionDate" class="block text-sm font-medium text-gray-700 mb-1 text-left">Date</label><input type="date" id="transactionDate" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" required></div><div id="customerNameContainer" style="display: none;"><label for="customerName" class="block text-sm font-medium text-gray-700 mb-1 text-left">Customer Name</label><input type="text" id="customerName" class="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg" placeholder="e.g., ABC Engineering"></div><div class="flex items-center justify-end pt-4 gap-4"><button id="closeModalBtn" type="button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Cancel</button><button type="submit" class="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-green-600">Confirm</button></div></form></div></div></div></div>
     <div id="historyModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full items-center justify-center p-4"><div class="relative mx-auto p-8 border w-full max-w-4xl h-full max-h-[90vh] shadow-lg rounded-2xl bg-white flex flex-col"><h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">Transaction History</h3><p id="historyItemInfo" class="text-center text-gray-600 mb-6"></p><div class="overflow-y-auto flex-grow"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50 sticky top-0"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock After</th></tr></thead><tbody id="historyTableBody" class="bg-white divide-y divide-gray-200"></tbody></table></div><div class="flex items-center justify-end pt-6"><button id="closeHistoryModalBtn" type="button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300">Close</button></div></div></div>
     <div id="messageBox" class="fixed bottom-5 right-5 bg-red-500 text-white py-3 px-5 rounded-lg shadow-xl transition-transform transform translate-x-full hidden"><p id="messageText"></p></div>
@@ -77,7 +73,7 @@
     <script type="module">
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, setLogLevel, writeBatch, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, writeBatch, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // --- YOUR CORRECT, VERIFIED CONFIG ---
@@ -128,16 +124,50 @@
             const historyItemInfo = document.getElementById('historyItemInfo');
             const historyTableBody = document.getElementById('historyTableBody');
             const closeHistoryModalBtn = document.getElementById('closeHistoryModalBtn');
-            
-            // --- THIS IS THE FIX: These two lines were missing ---
             const authToggleLink = document.getElementById('authToggleLink');
             const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
             // --- Authentication Logic ---
-            onAuthStateChanged(auth, (user) => { if (user) { userId = user.uid; userEmail.textContent = user.email; inventoryCollectionRef = collection(db, `users/${userId}/inventory`); authContainer.classList.add('hidden-by-auth'); appContainer.classList.remove('hidden-by-auth'); listenForInventoryUpdates(); } else { userId = null; inventoryCollectionRef = null; fullInventory = []; renderInventory([]); authContainer.classList.remove('hidden-by-auth'); appContainer.classList.add('hidden-by-auth'); } });
-            authForm.addEventListener('submit', async (e) => { e.preventDefault(); const email = authForm.email.value; const password = authForm.password.value; loadingOverlay.style.display = 'flex'; try { if (isLoginMode) { await signInWithEmailAndPassword(auth, email, password); } else { await createUserWithEmailAndPassword(auth, email, password); } } catch (error) { showMessage(error.message, true); } finally { loadingOverlay.style.display = 'none'; } });
-            signOutBtn.addEventListener('click', async () => { await signOut(auth); });
-            
+            onAuthStateChanged(auth, (user) => { 
+                if (user) { 
+                    userId = user.uid; 
+                    userEmail.textContent = user.email; 
+                    inventoryCollectionRef = collection(db, `users/${userId}/inventory`); 
+                    authContainer.classList.add('hidden-by-auth'); 
+                    appContainer.classList.remove('hidden-by-auth'); 
+                    listenForInventoryUpdates(); 
+                } else { 
+                    userId = null; 
+                    inventoryCollectionRef = null; 
+                    fullInventory = []; 
+                    renderInventory([]); 
+                    authContainer.classList.remove('hidden-by-auth'); 
+                    appContainer.classList.add('hidden-by-auth'); 
+                } 
+            });
+
+            authForm.addEventListener('submit', async (e) => { 
+                e.preventDefault(); 
+                const email = authForm.email.value; 
+                const password = authForm.password.value; 
+                loadingOverlay.style.display = 'flex'; 
+                try { 
+                    if (isLoginMode) { 
+                        await signInWithEmailAndPassword(auth, email, password); 
+                    } else { 
+                        await createUserWithEmailAndPassword(auth, email, password); 
+                    } 
+                } catch (error) { 
+                    showMessage(error.message, true); 
+                } finally { 
+                    loadingOverlay.style.display = 'none'; 
+                } 
+            });
+
+            signOutBtn.addEventListener('click', async () => { 
+                await signOut(auth); 
+            });
+
             authToggleLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 isLoginMode = !isLoginMode;
@@ -145,26 +175,70 @@
                 if (isLoginMode) {
                     authTitle.textContent = 'Sign in to your account';
                     authSubmitBtn.textContent = 'Sign In';
-                    authToggleLink.innerHTML = 'Don\'t have an account? <span class="font-bold">Sign Up</span>';
+                    authToggleLink.innerHTML = 'Don\'t have an account? Sign Up';
                     forgotPasswordContainer.style.display = 'flex';
                 } else {
                     authTitle.textContent = 'Create a new account';
                     authSubmitBtn.textContent = 'Sign Up';
-                    authToggleLink.innerHTML = 'Already have an account? <span class="font-bold">Sign In</span>';
+                    authToggleLink.innerHTML = 'Already have an account? Sign In';
                     forgotPasswordContainer.style.display = 'none';
                 }
             });
 
-            forgotPasswordLink.addEventListener('click', async (e) => { e.preventDefault(); const email = authForm.email.value; if (!email) { showMessage("Please enter your email address in the email field first.", true); return; } loadingOverlay.style.display = 'flex'; try { await sendPasswordResetEmail(auth, email); showMessage(`Password reset link sent to ${email}. Please check your inbox.`); } catch (error) { showMessage(error.message, true); } finally { loadingOverlay.style.display = 'none'; } });
+            forgotPasswordLink.addEventListener('click', async (e) => { 
+                e.preventDefault(); 
+                const email = authForm.email.value; 
+                if (!email) { 
+                    showMessage("Please enter your email address in the email field first.", true); 
+                    return; 
+                } 
+                loadingOverlay.style.display = 'flex'; 
+                try { 
+                    await sendPasswordResetEmail(auth, email); 
+                    showMessage(`Password reset link sent to ${email}. Please check your inbox.`); 
+                } catch (error) { 
+                    showMessage(error.message, true); 
+                } finally { 
+                    loadingOverlay.style.display = 'none'; 
+                } 
+            });
 
             // --- Main App Logic ---
-            function showMessage(message, isError = false) { messageText.textContent = message; messageBox.className = `fixed bottom-5 right-5 text-white py-3 px-5 rounded-lg shadow-xl transition-transform transform ${isError ? 'bg-red-500' : 'bg-green-500'}`; messageBox.classList.remove('hidden', 'translate-x-full'); setTimeout(() => { messageBox.classList.add('translate-x-full'); setTimeout(() => messageBox.classList.add('hidden'), 300); }, 4000); }
-            function listenForInventoryUpdates() { if (!inventoryCollectionRef) return; onSnapshot(inventoryCollectionRef, (snapshot) => { fullInventory = []; snapshot.forEach(doc => fullInventory.push({ id: doc.id, ...doc.data() })); filterAndRender(); }, (error) => { console.error("Error listening to inventory:", error); showMessage("Could not fetch real-time inventory updates.", true); }); }
-            function filterAndRender() { const searchTerm = searchInput.value.toLowerCase(); if (!fullInventory) return; const filtered = fullInventory.filter(item => (item.material?.toLowerCase().includes(searchTerm) || item.shape?.toLowerCase().includes(searchTerm) || item.dimensions?.toLowerCase().includes(searchTerm))); renderInventory(filtered); }
+            function showMessage(message, isError = false) { 
+                messageText.textContent = message; 
+                messageBox.className = `fixed bottom-5 right-5 text-white py-3 px-5 rounded-lg shadow-xl transition-transform transform ${isError ? 'bg-red-500' : 'bg-green-500'}`; 
+                messageBox.classList.remove('hidden', 'translate-x-full'); 
+                setTimeout(() => { 
+                    messageBox.classList.add('translate-x-full'); 
+                    setTimeout(() => messageBox.classList.add('hidden'), 300); 
+                }, 4000); 
+            }
+
+            function listenForInventoryUpdates() { 
+                if (!inventoryCollectionRef) return; 
+                onSnapshot(inventoryCollectionRef, (snapshot) => { 
+                    fullInventory = []; 
+                    snapshot.forEach(doc => fullInventory.push({ id: doc.id, ...doc.data() })); 
+                    filterAndRender(); 
+                }, (error) => { 
+                    console.error("Error listening to inventory:", error); 
+                    showMessage("Could not fetch real-time inventory updates.", true); 
+                }); 
+            }
+
+            function filterAndRender() { 
+                const searchTerm = searchInput.value.toLowerCase(); 
+                if (!fullInventory) return; 
+                const filtered = fullInventory.filter(item => (item.material?.toLowerCase().includes(searchTerm) || item.shape?.toLowerCase().includes(searchTerm) || item.dimensions?.toLowerCase().includes(searchTerm))); 
+                renderInventory(filtered); 
+            }
 
             function renderInventory(items) {
                 inventoryTableBody.innerHTML = '';
-                if (!items || items.length === 0) { inventoryTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-500">No items in inventory.</td></tr>'; return; }
+                if (!items || items.length === 0) { 
+                    inventoryTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-500">No items in inventory.</td></tr>'; 
+                    return; 
+                }
                 items.sort((a, b) => a.material.localeCompare(b.material));
                 items.forEach(item => {
                     const row = document.createElement('tr');
@@ -174,111 +248,179 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${item.shape}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${item.dimensions}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${item.currentStock < LOW_STOCK_THRESHOLD ? 'text-red-600' : 'text-gray-800'}">${item.currentStock}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <button class="text-green-600 hover:text-green-900 history-btn" data-id="${item.id}" data-item='${JSON.stringify(item)}'>History</button>
-                            <button class="text-indigo-600 hover:text-indigo-900 ml-4 manage-stock-btn" data-id="${item.id}" data-item='${JSON.stringify(item)}'>Manage</button>
-                            <button class="text-red-600 hover:text-red-900 ml-4 delete-item-btn" data-id="${item.id}">Delete</button>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
+                            <button class="text-green-600 hover:text-green-900 history-btn" data-id="${item.id}">History</button>
+                            <button class="text-indigo-600 hover:text-indigo-900 stock-btn" data-id="${item.id}">Manage Stock</button>
+                            <button class="text-red-600 hover:text-red-900 delete-btn" data-id="${item.id}">Delete</button>
                         </td>
                     `;
                     inventoryTableBody.appendChild(row);
                 });
             }
 
-            addItemForm.addEventListener('submit', async (e) => { e.preventDefault(); const newItem = { material: addItemForm.material.value, shape: addItemForm.shape.value, dimensions: addItemForm.dimensions.value, currentStock: parseFloat(addItemForm.initialStock.value) || 0, createdAt: serverTimestamp(), }; loadingOverlay.style.display = 'flex'; try { await addDoc(inventoryCollectionRef, newItem); showMessage("Item added successfully!"); addItemForm.reset(); } catch (error) { console.error("Error adding document: ", error); showMessage("Failed to add item.", true); } finally { loadingOverlay.style.display = 'none'; } });
-            
-            inventoryTableBody.addEventListener('click', async (e) => {
-                const target = e.target;
-                const id = target.dataset.id;
-                if (!id) return;
-
-                if (target.classList.contains('delete-item-btn')) { if (confirm("Are you sure you want to delete this item? This will also delete its transaction history.")) { loadingOverlay.style.display = 'flex'; try { await deleteDoc(doc(inventoryCollectionRef, id)); showMessage("Item deleted successfully."); } catch (error) { console.error("Error deleting item: ", error); showMessage("Failed to delete item.", true); } finally { loadingOverlay.style.display = 'none'; } } }
-                if (target.classList.contains('manage-stock-btn')) { const item = JSON.parse(target.dataset.item); modalItemId.value = id; modalItemInfo.textContent = `${item.material} - ${item.shape} - ${item.dimensions}`; document.getElementById('transactionDate').value = new Date().toISOString().split('T')[0]; document.getElementById('customerName').value = ''; customerNameContainer.style.display = transactionType.value === 'outward' ? 'block' : 'none'; transactionModal.classList.add('active'); }
-                
-                if (target.classList.contains('history-btn')) {
-                    const item = JSON.parse(target.dataset.item);
-                    historyItemInfo.textContent = `${item.material} - ${item.shape} - ${item.dimensions}`;
-                    loadingOverlay.style.display = 'flex';
-                    
-                    const transactionsRef = collection(db, `users/${userId}/inventory/${id}/transactions`);
-                    const q = query(transactionsRef, orderBy("date", "desc"));
-                    
-                    try {
-                        const querySnapshot = await getDocs(q);
-                        historyTableBody.innerHTML = '';
-                        if (querySnapshot.empty) {
-                            historyTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-500">No transaction history found.</td></tr>';
-                        } else {
-                            querySnapshot.forEach((doc) => {
-                                const data = doc.data();
-                                const transactionDate = data.date.toDate().toLocaleDateString();
-                                const row = document.createElement('tr');
-                                row.innerHTML = `
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${transactionDate}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium ${data.type === 'inward' ? 'text-green-600' : 'text-red-600'}">${data.type.charAt(0).toUpperCase() + data.type.slice(1)}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${data.amount}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">${data.customerName || 'N/A'}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-800">${data.newStock}</td>
-                                `;
-                                historyTableBody.appendChild(row);
-                            });
-                        }
-                    } catch (err) {
-                        console.error("Error fetching history:", err);
-                        showMessage("Could not load transaction history.", true);
-                        historyTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-red-500">Error loading history.</td></tr>';
-                    } finally {
-                        loadingOverlay.style.display = 'none';
-                        historyModal.classList.add('active');
-                    }
-                }
-            });
-
-            transactionType.addEventListener('change', (e) => { customerNameContainer.style.display = e.target.value === 'outward' ? 'block' : 'none'; });
-            
-            transactionForm.addEventListener('submit', async (e) => {
+            // --- Event Listeners for Main App ---
+            addItemForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const id = modalItemId.value;
-                const amount = parseFloat(transactionAmount.value);
-                const type = transactionType.value;
-                const date = document.getElementById('transactionDate').value;
-                const customerName = document.getElementById('customerName').value;
-
-                if (isNaN(amount) || amount <= 0) { showMessage("Please enter a valid quantity.", true); return; }
-                if (!date) { showMessage("Please select a date.", true); return; }
-                if (type === 'outward' && !customerName) { showMessage("Please enter a customer name for outward transactions.", true); return; }
-
                 loadingOverlay.style.display = 'flex';
+                const newItem = {
+                    material: addItemForm.material.value,
+                    shape: addItemForm.shape.value,
+                    dimensions: addItemForm.dimensions.value,
+                    initialStock: Number(addItemForm.initialStock.value),
+                    currentStock: Number(addItemForm.initialStock.value),
+                    timestamp: serverTimestamp()
+                };
+
                 try {
-                    const itemRef = doc(inventoryCollectionRef, id);
-                    const itemDoc = fullInventory.find(item => item.id === id);
-                    let newStock = itemDoc.currentStock;
-                    if (type === 'inward') { newStock += amount; } else { newStock -= amount; if (newStock < 0) { throw new Error("Stock cannot go below zero."); } }
-                    
-                    const transactionData = { type: type, amount: amount, date: new Date(date), previousStock: itemDoc.currentStock, newStock: newStock, createdAt: serverTimestamp() };
-                    if (type === 'outward') { transactionData.customerName = customerName; }
-
-                    const batch = writeBatch(db);
-                    const transactionRef = doc(collection(itemRef, "transactions"));
-                    batch.set(transactionRef, transactionData);
-                    batch.update(itemRef, { currentStock: newStock });
-                    await batch.commit();
-
-                    showMessage("Stock updated successfully!");
-                    transactionForm.reset();
-                    transactionModal.classList.remove('active');
-                } catch (error) {
-                    console.error("Error updating stock: ", error);
-                    showMessage(error.message, true);
+                    await addDoc(inventoryCollectionRef, newItem);
+                    showMessage("Item added successfully!");
+                    addItemForm.reset();
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                    showMessage("Error adding item. Please try again.", true);
                 } finally {
                     loadingOverlay.style.display = 'none';
                 }
             });
 
-            closeModalBtn.addEventListener('click', () => { transactionModal.classList.remove('active'); });
-            closeHistoryModalBtn.addEventListener('click', () => { historyModal.classList.remove('active'); });
             searchInput.addEventListener('input', filterAndRender);
+            
+            // Event Delegation for dynamically created buttons
+            inventoryTableBody.addEventListener('click', async (e) => {
+                if (e.target.classList.contains('stock-btn')) {
+                    const itemId = e.target.dataset.id;
+                    const item = fullInventory.find(i => i.id === itemId);
+                    if (item) {
+                        modalItemId.value = itemId;
+                        modalItemInfo.textContent = `${item.material} ${item.shape} (${item.dimensions})`;
+                        transactionModal.classList.add('active');
+                        document.getElementById('transactionDate').valueAsDate = new Date(); // Set to current date
+                    }
+                } else if (e.target.classList.contains('delete-btn')) {
+                    if (confirm('Are you sure you want to delete this item?')) {
+                        const itemId = e.target.dataset.id;
+                        loadingOverlay.style.display = 'flex';
+                        try {
+                            const docRef = doc(db, `users/${userId}/inventory`, itemId);
+                            await deleteDoc(docRef);
+                            showMessage("Item deleted successfully.");
+                        } catch (e) {
+                            console.error("Error deleting document: ", e);
+                            showMessage("Error deleting item. Please try again.", true);
+                        } finally {
+                            loadingOverlay.style.display = 'none';
+                        }
+                    }
+                } else if (e.target.classList.contains('history-btn')) {
+                    const itemId = e.target.dataset.id;
+                    const item = fullInventory.find(i => i.id === itemId);
+                    if (item) {
+                        historyItemInfo.textContent = `${item.material} ${item.shape} (${item.dimensions})`;
+                        await fetchHistory(itemId);
+                        historyModal.classList.add('active');
+                    }
+                }
+            });
+
+            transactionType.addEventListener('change', (e) => {
+                if (e.target.value === 'outward') {
+                    customerNameContainer.style.display = 'block';
+                } else {
+                    customerNameContainer.style.display = 'none';
+                }
+            });
+
+            transactionForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                loadingOverlay.style.display = 'flex';
+
+                const itemId = modalItemId.value;
+                const transactionTypeVal = transactionType.value;
+                const transactionAmount = Number(document.getElementById('transactionAmount').value);
+                const transactionDate = document.getElementById('transactionDate').value;
+                const customerName = document.getElementById('customerName').value;
+
+                const itemRef = doc(db, `users/${userId}/inventory`, itemId);
+                const item = fullInventory.find(i => i.id === itemId);
+                
+                if (!item) {
+                    showMessage("Item not found.", true);
+                    loadingOverlay.style.display = 'none';
+                    return;
+                }
+
+                const batch = writeBatch(db);
+                const newStock = transactionTypeVal === 'inward' ? item.currentStock + transactionAmount : item.currentStock - transactionAmount;
+
+                if (newStock < 0) {
+                    showMessage("Outward quantity cannot exceed current stock.", true);
+                    loadingOverlay.style.display = 'none';
+                    return;
+                }
+
+                // Update inventory
+                batch.update(itemRef, { currentStock: newStock });
+
+                // Add transaction history
+                const historyRef = collection(db, `users/${userId}/inventory/${itemId}/history`);
+                batch.set(doc(historyRef), {
+                    type: transactionTypeVal,
+                    amount: transactionAmount,
+                    stockAfter: newStock,
+                    customer: transactionTypeVal === 'outward' ? customerName : 'N/A',
+                    date: transactionDate,
+                    timestamp: serverTimestamp()
+                });
+
+                try {
+                    await batch.commit();
+                    showMessage("Stock updated successfully!");
+                    transactionModal.classList.remove('active');
+                    transactionForm.reset();
+                } catch (e) {
+                    console.error("Error performing transaction: ", e);
+                    showMessage("Error updating stock. Please try again.", true);
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                }
+            });
+
+            async function fetchHistory(itemId) {
+                historyTableBody.innerHTML = '';
+                const historyRef = collection(db, `users/${userId}/inventory/${itemId}/history`);
+                const q = query(historyRef, orderBy("timestamp", "desc"));
+                
+                loadingOverlay.style.display = 'flex';
+                try {
+                    const querySnapshot = await getDocs(q);
+                    if (querySnapshot.empty) {
+                        historyTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-500">No transaction history.</td></tr>';
+                        return;
+                    }
+                    querySnapshot.forEach(doc => {
+                        const history = doc.data();
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800">${history.date}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800">${history.type}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800">${history.amount}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800">${history.customer}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-800">${history.stockAfter}</td>
+                        `;
+                        historyTableBody.appendChild(row);
+                    });
+                } catch (e) {
+                    console.error("Error fetching history: ", e);
+                    showMessage("Could not fetch history.", true);
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                }
+            }
+
+            // --- Modal Controls ---
+            closeModalBtn.addEventListener('click', () => transactionModal.classList.remove('active'));
+            closeHistoryModalBtn.addEventListener('click', () => historyModal.classList.remove('active'));
         });
     </script>
-
 </body>
 </html>
